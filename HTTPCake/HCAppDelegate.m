@@ -44,7 +44,7 @@
     // Append http if it's not there
     NSString *urlString = self.urlTextField.stringValue;
 	if (![urlString hasPrefix:@"http"] && ![urlString hasPrefix:@"https"]) {
-		urlString = [[NSString alloc] initWithFormat:@"http://%@", urlString];
+		urlString = [NSString stringWithFormat:@"http://%@", urlString];
 		[self.urlTextField setStringValue:urlString];
 	}
     NSLog(@"URL = %@", urlString);
