@@ -46,6 +46,7 @@
 		1E3A6C80174F4C900094B7A5 = {
 			isa = PBXGroup;
 			children = (
+				1EC9247F174F5C7600CEFCC5 /* Model */,
 				1E3A6C92174F4C900094B7A5 /* HTTPCake */,
 				1E3A6C8B174F4C900094B7A5 /* Frameworks */,
 				1E3A6C8A174F4C900094B7A5 /* Products */,
@@ -100,6 +101,13 @@
 				1E3A6C9B174F4C900094B7A5 /* Credits.rtf */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		1EC9247F174F5C7600CEFCC5 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Model;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
