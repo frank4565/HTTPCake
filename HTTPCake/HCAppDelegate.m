@@ -10,6 +10,8 @@
 
 @interface HCAppDelegate () <NSTableViewDataSource, NSTableViewDelegate, NSURLConnectionDataDelegate>
 @property (nonatomic, strong) NSMutableArray *parametersTable;
+@property (nonatomic, strong) NSMutableArray *requestsTable;
+@property (nonatomic, strong) NSMutableArray *requestHeaders;
 @end
 
 @implementation HCAppDelegate
@@ -22,11 +24,68 @@
     return _parametersTable;
 }
 
+- (NSMutableArray *)requestsTable
+{
+    if (!_requestsTable) {
+        _requestsTable = [[NSMutableArray alloc] init];
+    }
+    return _requestsTable;
+}
+
+- (NSMutableArray *)requestHeaders
+{
+    if (!_requestHeaders) {
+        _requestHeaders = [[NSMutableArray alloc] init];
+    }
+    return _requestHeaders;
+}
+
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
     self.responseHeadersTextView.font = [NSFont fontWithName:@"Monaco" size:12.0f];
     
     self.parametersTableView.dataSource = self;
+    self.requestsTableView.dataSource = self;
+    self.requestsTableView.delegate = self;
+    self.requestHeadersTableView.dataSource = self;
+}
+
+- (IBAction)onSniffer:(NSButton *)sender
+{
+    if (sender.state == NSOffState) {
+        
+    } else if (sender.state == NSOnState) {
+        
+    }
+}
+
+- (IBAction)onOpenFile:(id)sender
+{
+    NSOpenPanel * panel = [NSOpenPanel openPanel];
+    [panel setAllowsMultipleSelection:NO];
+    [panel setCanChooseDirectories:NO];
+    [panel setCanChooseFiles:YES];
+    [panel setFloatingPanel:YES];
+    NSInteger result = [panel runModal];
+    if(result == NSFileHandlingPanelOKButton)
+    {
+        // read everything from text
+        NSString* fileContents =
+        [NSString stringWithContentsOfURL:panel.URLs[0] encoding:NSUTF8StringEncoding error:nil];
+        
+        // first, separate by new line
+        NSArray* allLinedStrings = [fileContents componentsSeparatedByCharactersInSet: [NSCharacterSet newlineCharacterSet]];
+        for (NSString *jsonString in allLinedStrings) {
+//            NSLog(@"jsonString : %@", jsonString);
+            if (![jsonString isEqualToString:@""]){
+                NSError *err;
+                [self.requestsTable addObject:[NSJSONSerialization JSONObjectWithData:[jsonString dataUsingEncoding:NSUTF8StringEncoding] options:NSJSONReadingAllowFragments error:&err]];
+//                NSLog(@"%@", err);
+            }
+        }
+        [self.requestsTableView reloadData];
+        NSLog(@"%@", self.requestsTable[0]);
+    }
 }
 
 - (IBAction)onGet:(NSButton *)sender
@@ -117,6 +176,12 @@ NSString * const kParametersValue = @"Parameters Value";
     if (tableView == self.parametersTableView) {
         count = self.parametersTable.count;
     }
+    if (tableView == self.requestsTableView) {
+        count = self.requestsTable.count;
+    }
+    if (tableView == self.requestHeadersTableView) {
+        count = self.requestHeaders.count;
+    }
     
     return count;
 }
@@ -127,6 +192,19 @@ NSString * const kParametersValue = @"Parameters Value";
     
     if (tableView == self.parametersTableView) {
         object = self.parametersTable[row][tableColumn.identifier];
+    }
+    if (tableView == self.requestsTableView) {
+//        NSLog(@"%@", tableColumn.identifier);
+        if ([tableColumn.identifier isEqualToString:@"HTTP Method"]) {
+            object = self.requestsTable[row][@"pairs"][0][@"req"][@"mth"];
+//            NSLog(@"%@", object);
+        }
+        if ([tableColumn.identifier isEqualToString:@"Request URL"]) {
+            object = [NSString stringWithFormat:@"http://%@%@", self.requestsTable[row][@"pairs"][0][@"req"][@"host"], self.requestsTable[row][@"pairs"][0][@"req"][@"uri"]];
+        }
+    }
+    if (tableView == self.requestHeadersTableView) {
+        object = self.requestHeaders[row][tableColumn.identifier];
     }
     
     return object;
@@ -143,6 +221,21 @@ NSString * const kParametersValue = @"Parameters Value";
         dic[tableColumn.identifier] = object;
         self.parametersTable[row] = dic;
     }
+}
+
+#pragma mark - Table View Delegate
+- (void)tableViewSelectionDidChange:(NSNotification *)notification
+{
+    NSInteger row = self.requestsTableView.selectedRow;
+    NSDictionary *dic = self.requestsTable[row][@"pairs"][0][@"req"];
+    for (NSString *key in dic.allKeys) {
+        [self.requestHeaders addObject:@{@"Name": key, @"Value": dic[key]}];
+    }
+    [self.requestHeadersTableView reloadData];
+    NSString *url = [NSString stringWithFormat:@"http://%@%@", self.requestsTable[row][@"pairs"][0][@"req"][@"host"], self.requestsTable[row][@"pairs"][0][@"req"][@"uri"]];
+    self.urlTextField.stringValue = url;
+    NSString *responseHeader = [NSString stringWithFormat:@"%@", self.requestsTable[row][@"pairs"][0][@"res"]];
+    self.responseHeadersTextView.string = responseHeader;
 }
 
 #pragma mark - URL Connection Delegate

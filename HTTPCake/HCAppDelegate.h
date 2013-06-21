@@ -10,6 +10,7 @@
 
 @interface HCAppDelegate : NSObject <NSApplicationDelegate>
 
+@property (unsafe_unretained) IBOutlet NSWindow *dumpWindow;
 @property (assign) IBOutlet NSWindow *window;
 @property (weak) IBOutlet NSTextField *urlTextField;
 @property (weak) IBOutlet NSButton *getButton;
@@ -18,5 +19,8 @@
 @property (weak) IBOutlet NSTableView *parametersTableView;
 @property (unsafe_unretained) IBOutlet NSTextView *responseTextView;
 @property (unsafe_unretained) IBOutlet NSTextView *responseHeadersTextView;
+@property (weak) IBOutlet NSButton *openFileButton;
+@property (weak) IBOutlet NSTableView *requestsTableView;
+@property (weak) IBOutlet NSButton *snifferButton;
 
 @end
